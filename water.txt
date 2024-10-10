@@ -69,3 +69,16 @@ Payable Amount €
 κμ   @6  1.00  6.00
 Εγγραφή Mobile App (Water Board Nicosia): Αρ. Καταναλωτή / Consumer No.: 6769
 Λογαριασμός Υδροληψίας
+
+
+billing Amount
+date
+duration/period
+bill type (aec or nwb)
+unit number
+meter number
+building number
+
+acc no Αρ. Λογαριασμού
+building no Αρ. Υποστατικού
+meter no Αρ. Μετρητή/τών
