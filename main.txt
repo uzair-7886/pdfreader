@@ -1,0 +1,112 @@
+package com.example;
+
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+public class App {
+    public static void main(String[] args) {
+        PDFHandler pdfHandler = new PDFHandler();
+        String baseFolder = "/home/uzair/Desktop/pdf-reader/pdfreader/src/main/resources/static/eac";
+        
+        try {
+            List<String> buildingFolders = listBuildingFolders(baseFolder);
+            List<Map<String, String>> allBillData = new ArrayList<>();
+
+            for (String buildingFolder : buildingFolders) {
+                String pdfFilePath = buildingFolder + "/elec.pdf";
+                String pdfText = pdfHandler.readPDF(pdfFilePath);
+                
+                Map<String, String> billData = extractElectricityBillInformation(pdfText);
+                billData.put("Building", new File(buildingFolder).getName());
+                allBillData.add(billData);
+            }
+
+            generateExcelReport(allBillData, baseFolder + "/electricity_report.xlsx");
+            System.out.println("Excel report generated successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static List<String> listBuildingFolders(String baseFolder) throws IOException {
+        return Files.list(Paths.get(baseFolder))
+                .filter(Files::isDirectory)
+                .map(Path::toString)
+                .collect(Collectors.toList());
+    }
+
+    private static Map<String, String> extractElectricityBillInformation(String text) {
+        Map<String, String> billData = new HashMap<>();
+
+        String billTypePattern = "(eac|nwb)";
+        String amountDuePattern = "Πληρωτέο μέχρι\\s*€([\\d.,]+)";
+        String dueDatePattern = "Πληρωτέο μέχρι\\s*(\\d{2}/\\d{2}/\\d{4})";
+        String billingPeriodPattern = "Περίοδος Κατανάλωσης\\s*(\\d{2}/\\d{2}/\\d{4} - \\d{2}/\\d{2}/\\d{4})";
+        String numbersPattern = "(\\d{3}\\s*\\d{3}\\s*\\d{4}\\s*\\d?)\\s*(\\d{6})\\s*(\\d{3}\\s*\\d{3}\\s*\\d{4}\\s*\\d)";
+
+        extractAndAdd(billData, "Amount Due", text, amountDuePattern, "€");
+        extractAndAdd(billData, "Due Date", text, dueDatePattern, "");
+        extractAndAdd(billData, "Billing Period", text, billingPeriodPattern, "");
+        extractAndAdd(billData, "Bill Type", text.toLowerCase(), billTypePattern, "");
+
+        Pattern numbersPatternCompiled = Pattern.compile(numbersPattern);
+        Matcher numbersMatcher = numbersPatternCompiled.matcher(text);
+
+        if (numbersMatcher.find()) {
+            billData.put("Building Number", numbersMatcher.group(1).replaceAll("\\s", ""));
+            billData.put("Meter Number", numbersMatcher.group(2));
+            billData.put("Account Number", numbersMatcher.group(3).replaceAll("\\s", ""));
+        }
+
+        return billData;
+    }
+
+    private static void extractAndAdd(Map<String, String> billData, String label, String text, String patternString, String prefix) {
+        Pattern pattern = Pattern.compile(patternString);
+        Matcher matcher = pattern.matcher(text);
+        if (matcher.find()) {
+            billData.put(label, prefix + matcher.group(1).trim());
+        }
+    }
+
+    private static void generateExcelReport(List<Map<String, String>> allBillData, String outputPath) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Electricity Bills");
+
+            Row headerRow = sheet.createRow(0);
+            String[] columns = {"Building", "Amount Due", "Due Date", "Billing Period", "Building Number", "Meter Number", "Account Number", "Bill Type"};
+            for (int i = 0; i < columns.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columns[i]);
+            }
+
+            int rowNum = 1;
+            for (Map<String, String> billData : allBillData) {
+                Row row = sheet.createRow(rowNum++);
+                for (int i = 0; i < columns.length; i++) {
+                    Cell cell = row.createCell(i);
+                    cell.setCellValue(billData.getOrDefault(columns[i], ""));
+                }
+            }
+
+            for (int i = 0; i < columns.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            try (FileOutputStream outputStream = new FileOutputStream(outputPath)) {
+                workbook.write(outputStream);
+            }
+        }
+    }
+}
