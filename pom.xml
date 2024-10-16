@@ -17,13 +17,15 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
-<repositories>
+
+  <repositories>
     <repository>
         <id>central</id>
         <name>Central Repository</name>
         <url>https://repo.maven.apache.org/maven2</url>
     </repository>
-</repositories>
+  </repositories>
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -31,62 +33,33 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
-<!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
-<dependency>
-    <groupId>org.apache.pdfbox</groupId>
-    <artifactId>pdfbox</artifactId>
-    <version>3.0.0</version>
-</dependency>
-<dependency>
-        <groupId>org.apache.poi</groupId>
-        <artifactId>poi</artifactId>
-        <version>5.2.3</version>
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>3.0.0</version>
     </dependency>
     <dependency>
-        <groupId>org.apache.poi</groupId>
-        <artifactId>poi-ooxml</artifactId>
-        <version>5.2.3</version>
-    </dependency>
-  <dependency>
-    <groupId>com.sun.mail</groupId>
-    <artifactId>jakarta.mail</artifactId>
-    <version>2.0.1</version> <!-- Ensure this version is correct -->
-</dependency>
-<dependencies>
-    <!-- Microsoft Exchange Web Services Java API -->
-    <dependency>
-        <groupId>com.microsoft.ews-java-api</groupId>
-        <artifactId>ews-java-api</artifactId>
-        <version>2.0</version>
-    </dependency>
-
-    <!-- JavaMail API -->
-    <dependency>
-        <groupId>javax.mail</groupId>
-        <artifactId>javax.mail-api</artifactId>
-        <version>1.6.2</version>
-    </dependency>
-
-    <!-- Jakarta Activation (required by JavaMail) -->
-    <dependency>
-        <groupId>com.sun.activation</groupId>
-        <artifactId>jakarta.activation</artifactId>
-        <version>2.0.1</version>
-    </dependency>
-    <dependencies>
-    <dependency>
-        <groupId>com.sun.mail</groupId>
-        <artifactId>javax.mail</artifactId>
-        <version>1.6.2</version>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+      <version>5.2.3</version>
     </dependency>
     <dependency>
-        <groupId>javax.activation</groupId>
-        <artifactId>activation</artifactId>
-        <version>1.1.1</version>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml</artifactId>
+      <version>5.2.3</version>
     </dependency>
-</dependencies>
-</dependencies>
-
+    <!-- Jakarta Mail API -->
+    <dependency>
+      <groupId>jakarta.mail</groupId>
+      <artifactId>jakarta.mail-api</artifactId>
+      <version>2.1.2</version>
+    </dependency>
+    <!-- Jakarta Mail Implementation (Eclipse Angus) -->
+    <dependency>
+      <groupId>org.eclipse.angus</groupId>
+      <artifactId>angus-mail</artifactId>
+      <version>2.0.2</version>
+    </dependency>
   </dependencies>
 
   <build>

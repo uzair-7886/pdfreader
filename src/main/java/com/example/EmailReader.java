@@ -1,49 +1,51 @@
 package com.example;
 
 import jakarta.mail.*;
-import jakarta.mail.search.FlagTerm;
-
+import jakarta.mail.internet.InternetAddress;
 import java.util.Properties;
 
 public class EmailReader {
 
-    public void readEmailSubjects(String username, String password) {
+    public void readEmailSubjects(String username, String accessToken) {
+        Properties properties = new Properties();
+        
+        properties.put("mail.store.protocol", "imaps");
+        properties.put("mail.imaps.host", "outlook.office365.com");
+        properties.put("mail.imaps.port", "993");
+        properties.put("mail.imaps.ssl.enable", "true");
+        properties.put("mail.imaps.auth.mechanisms", "XOAUTH2");
+        properties.put("mail.imaps.auth.login.disable", "true");
+        properties.put("mail.imaps.auth.plain.disable", "true");
+        
+        properties.put("mail.debug", "true");
+        properties.put("mail.debug.auth", "true");
+
         try {
-            // Outlook IMAP settings
-            String host = "outlook.office365.com";
-            String mailStoreType = "imap";
+            Session session = Session.getInstance(properties);
+            
+            Store store = session.getStore("imaps");
 
-            // Set properties for the mail session
-            Properties properties = new Properties();
-            properties.put("mail.store.protocol", mailStoreType);
-            properties.put("mail.imap.host", host);
-            properties.put("mail.imap.port", "993");
-            properties.put("mail.imap.starttls.enable", "true");
+            // Set up SASL XOAUTH2 authentication
+            final String oauthToken = "user=" + username + "\001auth=Bearer " + accessToken + "\001\001";
+            store.connect("outlook.office365.com", username, oauthToken);
 
-            // Establish a mail session
-            Session emailSession = Session.getDefaultInstance(properties);
+            Folder inbox = store.getFolder("INBOX");
+            inbox.open(Folder.READ_ONLY);
 
-            // Create the IMAP store object and connect to the email account
-            Store store = emailSession.getStore("imap");
-            store.connect(host, username, password);
+            Message[] messages = inbox.getMessages();
 
-            // Open the inbox folder
-            Folder emailFolder = store.getFolder("INBOX");
-            emailFolder.open(Folder.READ_ONLY);
-
-            // Get all unread messages
-            Message[] messages = emailFolder.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
-
-            // Print subjects of all emails
             for (Message message : messages) {
-                System.out.println("Email Subject: " + message.getSubject());
+                System.out.println("Subject: " + message.getSubject());
+                System.out.println("From: " + InternetAddress.toString(message.getFrom()));
+                System.out.println("Sent Date: " + message.getSentDate());
+                System.out.println("--------------------");
             }
 
-            // Close the folder and store
-            emailFolder.close(false);
+            inbox.close(false);
             store.close();
 
-        } catch (Exception e) {
+        } catch (MessagingException e) {
+            System.err.println("An error occurred while trying to read emails:");
             e.printStackTrace();
         }
     }
